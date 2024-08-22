@@ -15,18 +15,18 @@
       let
         nativeSystem = "x86_64-linux";
         nativeTarget = "x86_64-unknown-linux-gnu";
-        crossTarget = "aarch64-unknown-linux-gnu";  # "armv7-unknown-linux-gnueabihf";
+        crossTarget = "aarch64-unknown-linux-gnu"; # "armv7-unknown-linux-gnueabihf";
         overlays = [ (import rust-overlay) ];
         pkgs = (import nixpkgs) {
           inherit system overlays;
         };
 
         pkgsCrossTarget = (import nixpkgs) {
-            inherit overlays;
-            system = "${system}";
-            crossSystem = {
-                config = "${crossTarget}";
-            };
+          inherit overlays;
+          system = "${system}";
+          crossSystem = {
+            config = "${crossTarget}";
+          };
         };
 
 
@@ -41,43 +41,43 @@
         ];
 
         # native compilation
-                toolchain = pkgs.rust-bin.stable.latest.default.override {
-                  extensions = extensions;
-                  targets = targets;
-                };
+        toolchain = pkgs.rust-bin.stable.latest.default.override {
+          extensions = extensions;
+          targets = targets;
+        };
 
-                # Using a separate pkgs instance so that we get the x86_64 cross-compile
-                crossToolchain = pkgsCrossTarget.rust-bin.stable.latest.default.override {
-                  extensions = extensions;
-                  targets = targets;
-                };
+        # Using a separate pkgs instance so that we get the x86_64 cross-compile
+        crossToolchain = pkgsCrossTarget.rust-bin.stable.latest.default.override {
+          extensions = extensions;
+          targets = targets;
+        };
 
-                # A naersk version for the native and cross-compilation toolchains
-                        naersk' = naersk.lib.${system}.override {
-                          cargo = toolchain;
-                          rustc = toolchain;
-                        };
+        # A naersk version for the native and cross-compilation toolchains
+        naersk' = naersk.lib.${system}.override {
+          cargo = toolchain;
+          rustc = toolchain;
+        };
 
-                        naerskCross' = naersk.lib.${nativeSystem}.override {
-                          cargo = crossToolchain;
-                          rustc = crossToolchain;
-                        };
+        naerskCross' = naersk.lib.${nativeSystem}.override {
+          cargo = crossToolchain;
+          rustc = crossToolchain;
+        };
 
 
-                        # Same deal for the package builds
-                        naerskBuildPackage = target: args:
-                          naersk'.buildPackage (
-                            args
-                            // { CARGO_BUILD_TARGET = target; }
-                            // cargoConfig
-                          );
+        # Same deal for the package builds
+        naerskBuildPackage = target: args:
+          naersk'.buildPackage (
+            args
+            // { CARGO_BUILD_TARGET = target; }
+            // cargoConfig
+          );
 
-                        naerskCrossBuild = target: args:
-                          naerskCross'.buildPackage (
-                            args
-                            // { CARGO_BUILD_TARGET = target; }
-                            // cargoConfig
-                          );
+        naerskCrossBuild = target: args:
+          naerskCross'.buildPackage (
+            args
+            // { CARGO_BUILD_TARGET = target; }
+            // cargoConfig
+          );
 
 
         cargoConfig = { };
