@@ -46,7 +46,7 @@
           targets = targets;
         };
 
-        # Using a separate pkgs instance so that we get the x86_64 cross-compile
+        # Using a separate pkgs instance so that we get the cross-compile on the typical host
         crossToolchain = pkgsCrossTarget.rust-bin.stable.latest.default.override {
           extensions = extensions;
           targets = targets;
@@ -85,19 +85,23 @@
       in
       rec {
         # For `nix build` & `nix run`:
-        defaultPackage = naersk'.buildPackage {
+        defaultPackage = naerskBuildPackage {
+          src = ./.;
+        };
+
+        defaultCrossPackage = naerskCrossBuild {
           src = ./.;
         };
 
         # Run `nix build .#test` to run tests
-        test = naersk'.buildPackage {
+        test = naerskBuildPackage {
           src = ./.;
           mode = "test";
           #cargoTestOptions = [ ''cargo_test_options="$cargo_test_options --lib"'' ];
         };
 
         # Run `nix build .#check` to check code
-        check = naersk'.buildPackage {
+        check = naerskBuildPackage {
           src = ./.;
           mode = "check";
         };
